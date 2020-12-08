@@ -1,6 +1,15 @@
 export interface ChatMessage {
   author: string;
   message: string;
-  timestamp: Date;
+  timestamp: string;
   status: string;
+}
+
+export interface ChatRoom {
+  name: string;
+  recentActivity: {
+    message: string;
+    timestamp: string;
+  }
+  imageURL: string;
 }
