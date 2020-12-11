@@ -2,7 +2,14 @@ import mongoose from 'mongoose';
 import cryptoRandomString from 'crypto-random-string';
 import User from './user';
 
-const roomSchema = new mongoose.Schema(
+type Room = {
+	code: String;
+	users: Array<User>;
+};
+type RoomDocument = mongoose.Document & Room;
+type RoomModel = mongoose.Model<RoomDocument>;
+
+const roomSchema = new mongoose.Schema<RoomModel>(
 	{
 		code: {
 			type: String,
@@ -15,14 +22,19 @@ const roomSchema = new mongoose.Schema(
 );
 
 roomSchema.statics.createRoom = async function(username: String) {
-	const user = new User({ username });
-	await user.save();
-	const code = cryptoRandomString({ length: 6, type: 'alphanumeric' });
-	const room = new Room({ code, users: [ user ] });
+	const user = await User.create({ username });
+	const code = await cryptoRandomString({ length: 6, type: 'alphanumeric' });
+	const room = await Room.create({ code, users: [ user ] });
+	return room;
+};
+
+roomSchema.statics.joinRoom = async function(room: RoomDocument, username: String) {
+	const user = await User.create({ username });
+	await room.users.push(user);
 	await room.save();
 	return room;
 };
 
-const Room = mongoose.model('Room', roomSchema);
+const Room = mongoose.model<RoomDocument, RoomModel>('Room', roomSchema);
 
 export default Room;

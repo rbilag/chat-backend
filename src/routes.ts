@@ -8,9 +8,8 @@ router.get('/', (req, res) => {
 });
 
 router.post('/rooms/new', async (req, res) => {
-	const { nickname } = req.body;
 	try {
-		const newRoom = await models.Room.schema.statics.createRoom(nickname);
+		const newRoom = await models.Room.schema.statics.createRoom(req.body.nickname);
 		res.status(201).json({
 			status: 'success',
 			data: { room: newRoom }
@@ -24,18 +23,56 @@ router.post('/rooms/new', async (req, res) => {
 });
 
 router.post('/rooms/join', async (req, res) => {
-	// check if room exists
-	// check if no nickname dup in room
-	const dbMessage = req.body;
-	// Rooms.find((err, data) => {
-	//   if (err) {
-	//     res.status(500).send(err);
-	//   } else {
-	//     console.log(data);
-	//     // check username sa data
-	//     res.status(200).send(data);
-	//   }
-	// });
+	try {
+		const { nickname, roomCode } = req.body;
+		const room = await models.Room.findOne({ code: roomCode });
+		if (room) {
+			const duplicateUser = await room.users.find((user) => user.username === nickname);
+			if (duplicateUser) {
+				throw 'Nickname already exists';
+			} else {
+				const joinedRoom = await models.Room.schema.statics.joinRoom(room, nickname);
+				res.status(201).json({
+					status: 'success',
+					data: { room: joinedRoom }
+				});
+			}
+		} else {
+			throw 'Room not found';
+		}
+	} catch (err) {
+		res.status(400).json({
+			status: 'fail',
+			message: err
+		});
+	}
+});
+
+router.post('/rooms/leave', async (req, res) => {
+	try {
+		const { nickname, roomCode } = req.body;
+		const room = await models.Room.findOne({ code: roomCode });
+		if (room) {
+			const userIndex = await room.users.findIndex((user) => user.username === nickname);
+			if (userIndex < 0) {
+				throw 'User does not exist';
+			} else {
+				await room.users.splice(userIndex, 1);
+				room.save();
+				res.status(201).json({
+					status: 'success',
+					data: { room }
+				});
+			}
+		} else {
+			throw 'Room not found';
+		}
+	} catch (err) {
+		res.status(400).json({
+			status: 'fail',
+			message: err
+		});
+	}
 });
 
 export default router;

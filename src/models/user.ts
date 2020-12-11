@@ -1,6 +1,12 @@
 import mongoose from 'mongoose';
 
-const userSchema = new mongoose.Schema(
+type User = {
+	username: String;
+};
+type UserDocument = mongoose.Document & User;
+type UserModel = mongoose.Model<UserDocument>;
+
+const userSchema = new mongoose.Schema<UserModel>(
 	{
 		username: {
 			type: String,
@@ -24,6 +30,6 @@ userSchema.pre('remove', function(next: any) {
 	this.model('Message').deleteMany({ user: this._id }, next);
 });
 
-const User = mongoose.model('User', userSchema);
+const User = mongoose.model<UserDocument, UserModel>('User', userSchema);
 
 export default User;
