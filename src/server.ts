@@ -1,11 +1,11 @@
-import './env';
 import express, { Application } from 'express';
 import { createServer, Server as HttpServer } from 'http';
 import socketio, { Server as IOServer, Socket } from 'socket.io';
 import cors from 'cors';
-import mongoose from 'mongoose';
 import { ChatEvent } from './constants';
 import { ChatMessage, UserRoom } from './types';
+import { connectDb } from './models';
+import routes from './routes';
 
 const app: Application = express();
 app.use(express.json());
@@ -13,16 +13,9 @@ app.use(cors());
 app.options('*', cors());
 const server: HttpServer = createServer(app);
 const io: IOServer = socketio(server);
-const DB: string | undefined = process.env['DB_CONN'];
 
-mongoose.connect('DB', {
-	userCreateIndex: true,
-	useNewUrlParser: true,
-	useUnifiedTopology: true
-});
-const db = mongoose.connection;
-
-db.once('open', () => {
+connectDb().then(async () => {
+	console.log('DB Connected..');
 	io.on(ChatEvent.CONNECT, (socket: Socket) => {
 		console.log(`Client connected..`);
 
@@ -44,22 +37,11 @@ db.once('open', () => {
 			io.emit(ChatEvent.SYSTEM, 'A user has left the room.');
 		});
 	});
-});
 
-app.post('/api/v1/rooms/join', (req, res) => {
-	const dbMessage = req.body;
-	// Rooms.find((err, data) => {
-	//   if (err) {
-	//     res.status(500).send(err);
-	//   } else {
-	//     console.log(data);
-	//     // check username sa data
-	//     res.status(200).send(data);
-	//   }
-	// });
-});
+	app.use('/api/v1', routes);
 
-const PORT: string | undefined = process.env['PORT'];
-server.listen(PORT, () => {
-	console.log(`Server running on port ${PORT}`);
+	const PORT: string | number = process.env.PORT || 8080;
+	server.listen(PORT, () => {
+		console.log(`Server running on port ${PORT}`);
+	});
 });
