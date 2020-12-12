@@ -10,7 +10,8 @@ const userSchema = new mongoose.Schema<UserModel>(
 	{
 		username: {
 			type: String,
-			required: true
+			required: true,
+			unique: true
 		}
 	},
 	{ timestamps: true }

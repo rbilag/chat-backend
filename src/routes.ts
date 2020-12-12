@@ -48,15 +48,19 @@ router.post('/rooms/join', async (req, res) => {
 	}
 });
 
+// todo add auth token
 router.post('/rooms/leave', async (req, res) => {
 	try {
 		const { nickname, roomCode } = req.body;
+		// TODO optimize?
+		const user = await models.User.findOne({ username: nickname });
 		const room = await models.Room.findOne({ code: roomCode });
-		if (room) {
-			const userIndex = await room.users.findIndex((user) => user.username === nickname);
+		if (room && user) {
+			const userIndex = await room.users.indexOf(user._id);
 			if (userIndex < 0) {
 				throw 'User does not exist';
 			} else {
+				// TODO delete room if last user left
 				await room.users.splice(userIndex, 1);
 				room.save();
 				res.status(201).json({
@@ -68,6 +72,7 @@ router.post('/rooms/leave', async (req, res) => {
 			throw 'Room not found';
 		}
 	} catch (err) {
+		console.log(err);
 		res.status(400).json({
 			status: 'fail',
 			message: err
