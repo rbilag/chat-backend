@@ -2,10 +2,11 @@ import express, { Application } from 'express';
 import { createServer, Server as HttpServer } from 'http';
 import socketio, { Server as IOServer, Socket } from 'socket.io';
 import cors from 'cors';
-import { ChatEvent } from './constants';
+import { ChatEvent, MessageStatus } from './constants';
 import { ChatMessage, UserRoom } from './types';
 import { connectDb } from './models';
 import routes from './routes';
+import models from './models';
 
 const app: Application = express();
 app.use(express.json());
@@ -19,22 +20,34 @@ connectDb().then(async () => {
 	io.on(ChatEvent.CONNECT, (socket: Socket) => {
 		console.log(`Client connected..`);
 
-		socket.on(ChatEvent.JOIN, (u: UserRoom) => {
+		socket.on(ChatEvent.JOIN, async (userRoom: UserRoom) => {
 			console.log('User joined room');
-			console.log(`[user]: ${JSON.stringify(u)}`);
-			socket.emit(ChatEvent.SYSTEM, `Welcome to room ${u.room}!`);
-			socket.broadcast.emit(ChatEvent.SYSTEM, `${u.name} has entered the room.`);
+			console.log(`[user]: ${JSON.stringify(userRoom)}`);
+			try {
+				const newMsg = await models.Message.schema.statics.createMsg({
+					userRoom,
+					content: `${userRoom.name} has joined the party! Welcome to ${userRoom.room}.`,
+					isSystem: true
+				});
+				io.emit(ChatEvent.MESSAGE, newMsg);
+			} catch (err) {
+				console.log(err);
+			}
 		});
 
-		socket.on(ChatEvent.MESSAGE, (m: ChatMessage) => {
+		socket.on(ChatEvent.MESSAGE, async (m: ChatMessage) => {
 			console.log('Message has been emitted');
 			console.log(`[message]: ${JSON.stringify(m)}`);
-			io.emit(ChatEvent.MESSAGE, m);
+			const newMsg = await models.Message.schema.statics.createMsg({
+				userRoom: m.userRoom,
+				content: m.content
+			});
+			io.emit(ChatEvent.MESSAGE, newMsg);
 		});
 
 		socket.on(ChatEvent.DISCONNECT, () => {
 			console.log('Client disconnected');
-			io.emit(ChatEvent.SYSTEM, 'A user has left the room.');
+			io.emit(ChatEvent.MESSAGE, 'A user has left the room.');
 		});
 	});
 

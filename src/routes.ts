@@ -52,7 +52,7 @@ router.post('/rooms/join', async (req, res) => {
 router.post('/rooms/leave', async (req, res) => {
 	try {
 		const { nickname, roomCode } = req.body;
-		// TODO optimize?
+		// TODO optimize? finalize authentication model
 		const user = await models.User.findOne({ username: nickname });
 		const room = await models.Room.findOne({ code: roomCode });
 		if (room && user) {
