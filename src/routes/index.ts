@@ -1,9 +1,14 @@
 import express from 'express';
-import users from '../controllers/user';
+import User from '../models/user';
 import { encode } from '../middlewares/jwt';
 
 const router = express.Router();
 
-router.post('/login/:userId', encode, (req, res, next) => {});
+router.post('/login', encode, async (req: any, res: any, next: any) => {
+	return res.status(200).json({
+		success: true,
+		authorization: req.authToken
+	});
+});
 
 export default router;

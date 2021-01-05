@@ -52,17 +52,49 @@ userSchema.statics.createUser = async function(userDetails: User) {
 	}
 };
 
-userSchema.statics.findByLogin = async function(login: String) {
-	let user = await User.findOne({
-		username: login
-	});
-	if (!user) {
-		user = await User.findOne({ email: login });
+userSchema.statics.getUserById = async function(id: String) {
+	try {
+		const user = await User.findById(id);
+		if (!user) throw { error: 'User not found' };
+		return user;
+	} catch (error) {
+		throw error;
 	}
-	return user;
 };
 
-// TODO handling of deleted user
+userSchema.statics.getUsers = async function() {
+	try {
+		const user = await User.find();
+		return user;
+	} catch (error) {
+		throw error;
+	}
+};
+
+userSchema.statics.findByLogin = async function(login: String) {
+	try {
+		let user = await User.findOne({
+			username: login
+		});
+		if (!user) {
+			user = await User.findOne({ email: login });
+		}
+		return user;
+	} catch (error) {
+		throw error;
+	}
+};
+
+userSchema.statics.deleteUserById = async function(id: String) {
+	try {
+		const user = await User.findOneAndDelete({ _id: id });
+		return user;
+	} catch (error) {
+		throw error;
+	}
+};
+
+// TODO handling of deleted user's msgs and rooms
 // userSchema.pre('remove', function(next: any) {
 // 	this.model('Message').deleteMany({ user: this._id }, next);
 // });
