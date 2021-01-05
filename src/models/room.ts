@@ -22,17 +22,17 @@ const roomSchema = new mongoose.Schema<RoomModel>(
 );
 
 roomSchema.statics.createRoom = async function(username: String) {
-	const user = await User.create({ username });
-	const code = await cryptoRandomString({ length: 6, type: 'alphanumeric' });
-	const room = await Room.create({ code, users: [ user ] });
-	return room;
+	// const user = await User.create({ username });
+	// const code = await cryptoRandomString({ length: 6, type: 'alphanumeric' });
+	// const room = await Room.create({ code, users: [ user ] });
+	// return room;
 };
 
 roomSchema.statics.joinRoom = async function(room: RoomDocument, username: String) {
-	const user = await User.create({ username });
-	await room.users.push(user);
-	await room.save();
-	return room;
+	// const user = await User.create({ username });
+	// await room.users.push(user);
+	// await room.save();
+	// return room;
 };
 
 const Room = mongoose.model<RoomDocument, RoomModel>('Room', roomSchema);

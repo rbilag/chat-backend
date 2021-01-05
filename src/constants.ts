@@ -11,3 +11,12 @@ export enum MessageStatus {
 	UNSENT = 'unsent',
 	ERROR = 'error'
 }
+
+export const WELCOME_MESSAGES = [
+	'{{name}} has joined the party!',
+	'Welcome aboard {{name}}!',
+	"It's great to have you {{name}}!",
+	'Oh, hey {{name}}! Welcome!',
+	'Thanks for joining us {{name}}!',
+	'{{name}} in your area!'
+];

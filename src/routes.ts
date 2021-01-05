@@ -57,6 +57,7 @@ router.post('/rooms/leave', async (req, res) => {
 		const room = await models.Room.findOne({ code: roomCode });
 		if (room && user) {
 			const userIndex = await room.users.indexOf(user._id);
+			console.log(userIndex);
 			if (userIndex < 0) {
 				throw 'User does not exist';
 			} else {
