@@ -13,8 +13,8 @@ import { decode } from './middlewares/jwt';
 import { ChatEvent, MessageStatus, WELCOME_MESSAGES } from './constants';
 import { ChatMessage, UserRoom } from './types';
 import { connectDb } from './config/index';
-// import routes from './routes';
 import models from './models';
+import { joinRoom, disconnect } from './utils/users';
 
 const app: Application = express();
 app.use(logger('dev'));
@@ -32,6 +32,7 @@ connectDb().then(async () => {
 		socket.on(ChatEvent.JOIN, async (userRoom: UserRoom) => {
 			console.log('User joined room');
 			console.log(`[user]: ${JSON.stringify(userRoom)}`);
+			joinRoom(socket.id, userRoom.name, userRoom.room);
 			try {
 				const newMsg = await models.Message.schema.statics.createMsg({
 					userRoom,
@@ -41,7 +42,7 @@ connectDb().then(async () => {
 					),
 					isSystem: true
 				});
-				io.emit(ChatEvent.MESSAGE, newMsg);
+				io.to(userRoom.room).emit(ChatEvent.MESSAGE, newMsg);
 			} catch (err) {
 				console.log(err);
 			}
@@ -54,12 +55,15 @@ connectDb().then(async () => {
 				userRoom: m.userRoom,
 				content: m.content
 			});
-			io.emit(ChatEvent.MESSAGE, newMsg);
+			io.to(m.userRoom.room).emit(ChatEvent.MESSAGE, newMsg);
 		});
 
 		socket.on(ChatEvent.DISCONNECT, () => {
 			console.log('Client disconnected');
-			io.emit(ChatEvent.MESSAGE, 'A user has left the room.');
+			const user = disconnect(socket.id);
+			if (user) {
+				io.to(user.room).emit(ChatEvent.MESSAGE, `${user.username} user has left the room.`);
+			}
 		});
 	});
 
@@ -71,7 +75,7 @@ connectDb().then(async () => {
 	app.use('*', (req, res) => {
 		return res.status(404).json({
 			success: false,
-			message: "API endpoint does'nt exist"
+			message: "API endpoint doesn't exist"
 		});
 	});
 
