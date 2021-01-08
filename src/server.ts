@@ -33,6 +33,7 @@ connectDb().then(async () => {
 			console.log('User joined room');
 			console.log(`[user]: ${JSON.stringify(userRoom)}`);
 			joinRoom(socket.id, userRoom.name, userRoom.room);
+			socket.join(userRoom.room);
 			try {
 				const newMsg = await models.Message.schema.statics.createMsg({
 					userRoom,
@@ -51,17 +52,22 @@ connectDb().then(async () => {
 		socket.on(ChatEvent.MESSAGE, async (m: ChatMessage) => {
 			console.log('Message has been emitted');
 			console.log(`[message]: ${JSON.stringify(m)}`);
-			const newMsg = await models.Message.schema.statics.createMsg({
-				userRoom: m.userRoom,
-				content: m.content
-			});
-			io.to(m.userRoom.room).emit(ChatEvent.MESSAGE, newMsg);
+			try {
+				const newMsg = await models.Message.schema.statics.createMsg({
+					userRoom: m.userRoom,
+					content: m.content
+				});
+				io.to(m.userRoom.room).emit(ChatEvent.MESSAGE, newMsg);
+			} catch (err) {
+				console.log(err);
+			}
 		});
 
 		socket.on(ChatEvent.DISCONNECT, () => {
 			console.log('Client disconnected');
 			const user = disconnect(socket.id);
 			if (user) {
+				socket.leave(user.room);
 				io.to(user.room).emit(ChatEvent.MESSAGE, `${user.username} user has left the room.`);
 			}
 		});

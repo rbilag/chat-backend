@@ -6,7 +6,7 @@ export default {
 			const users = await User.schema.statics.getUsers();
 			return res.status(200).json({ success: true, users });
 		} catch (error) {
-			return res.status(500).json({ success: false, error: error });
+			return res.status(400).json({ success: false, error: error });
 		}
 	},
 	onGetUserById: async (req: any, res: any) => {
@@ -14,16 +14,16 @@ export default {
 			const user = await User.schema.statics.getUserById(req.params.id);
 			return res.status(200).json({ success: true, user });
 		} catch (error) {
-			return res.status(500).json({ success: false, error: error });
+			return res.status(400).json({ success: false, error: error });
 		}
 	},
 	onCreateUser: async (req: any, res: any) => {
 		try {
 			const user = await User.schema.statics.createUser(req.body);
-			return res.status(200).json({ success: true, user });
+			return res.status(201).json({ success: true, user });
 		} catch (error) {
 			console.log(error);
-			return res.status(500).json({ success: false, error: error });
+			return res.status(400).json({ success: false, error: error });
 		}
 	},
 	onDeleteUserById: async (req: any, res: any) => {
@@ -34,7 +34,7 @@ export default {
 				message: `Deleted user: ${user.username}.`
 			});
 		} catch (error) {
-			return res.status(500).json({ success: false, error: error });
+			return res.status(400).json({ success: false, error: error });
 		}
 	}
 };

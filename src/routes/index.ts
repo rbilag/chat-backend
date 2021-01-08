@@ -7,7 +7,8 @@ const router = express.Router();
 router.post('/login', encode, async (req: any, res: any, next: any) => {
 	return res.status(200).json({
 		success: true,
-		authorization: req.authToken
+		authorization: req.authToken,
+		data: { username: req.username }
 	});
 });
 

@@ -13,6 +13,7 @@ export const encode = async (req: any, res: any, next: any) => {
 			);
 			console.log('Auth', authToken);
 			req.authToken = authToken;
+			req.username = user.username;
 			next();
 		} else {
 			return res.status(401).json({ success: false, error: 'Invalid credentials' });
