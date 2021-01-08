@@ -19,7 +19,7 @@ import { joinRoom, disconnect } from './utils/users';
 const app: Application = express();
 app.use(logger('dev'));
 app.use(express.json());
-// app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: false }));
 app.use(cors());
 app.options('*', cors());
 const server: HttpServer = createServer(app);
@@ -70,7 +70,7 @@ connectDb().then(async () => {
 	const URL_PREFIX = '/api/v1';
 	app.use(`${URL_PREFIX}`, indexRouter);
 	app.use(`${URL_PREFIX}/users`, userRouter);
-	app.use(`${URL_PREFIX}/room`, roomRouter);
+	app.use(`${URL_PREFIX}/rooms`, decode, roomRouter);
 	app.use(`${URL_PREFIX}/delete`, deleteRouter);
 	app.use('*', (req, res) => {
 		return res.status(404).json({
