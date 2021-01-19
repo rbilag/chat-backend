@@ -25,7 +25,8 @@ export default {
 	},
 	onCreateRoom: async (req: any, res: any) => {
 		try {
-			const newRoom = await Room.schema.statics.createRoom(req.userId);
+			const { description } = req.body;
+			const newRoom = await Room.schema.statics.createRoom(req.userId, description);
 			return res.status(201).json({
 				status: 'success',
 				data: { room: newRoom }
