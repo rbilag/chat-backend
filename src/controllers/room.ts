@@ -43,9 +43,7 @@ export default {
 			const { roomCode } = req.body;
 			const room = await Room.findOne({ code: roomCode });
 			if (room) {
-				console.log(room.users);
-				const duplicateUser = await room.users.find(req.userId);
-				if (duplicateUser) {
+				if (room.users.includes(req.userId)) {
 					throw 'User already in room';
 				} else {
 					const joinedRoom = await Room.schema.statics.joinRoom(room, req.userId);

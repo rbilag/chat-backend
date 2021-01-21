@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import { Schema, Document, Model, model } from 'mongoose';
 import { MessageStatus } from '../constants';
 import { ChatMessage } from '../types';
 import User from './user';
@@ -10,10 +10,10 @@ type Message = {
 	user: User;
 	roomCode: String;
 };
-type MessageDocument = mongoose.Document & Message;
-type MessageModel = mongoose.Model<MessageDocument>;
+type MessageDocument = Document & Message;
+type MessageModel = Model<MessageDocument>;
 
-const messageSchema = new mongoose.Schema<MessageModel>(
+const messageSchema = new Schema<MessageModel>(
 	{
 		content: {
 			type: String,
@@ -28,7 +28,7 @@ const messageSchema = new mongoose.Schema<MessageModel>(
 			type: Boolean,
 			default: false
 		},
-		user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+		user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
 		roomCode: {
 			type: String,
 			required: true
@@ -44,9 +44,15 @@ messageSchema.statics.createMsg = async function({
 	status = MessageStatus.SENT
 }: ChatMessage) {
 	const user = await User.findOne({ username: isSystem ? 'Chatbot' : userRoom.name });
+	console.log(user);
 	if (user) {
 		const message = await Message.create({ content, isSystem, status, user: user._id, roomCode: userRoom.room });
-		return message;
+		console.log(message);
+		return await Message.populate(message, {
+			path: 'user',
+			select: 'username',
+			model: 'User'
+		});
 	}
 };
 
@@ -54,13 +60,13 @@ messageSchema.statics.getMsgs = async function(roomCode: String) {
 	console.log(roomCode);
 	const messages = await Message.find({ roomCode }).populate({
 		path: 'user',
-		select: 'firstName lastName username email',
+		select: 'username',
 		model: 'User'
 	});
 	console.log(messages);
 	return messages;
 };
 
-const Message = mongoose.model<MessageDocument, MessageModel>('Message', messageSchema);
+const Message = model<MessageDocument, MessageModel>('Message', messageSchema);
 
 export default Message;
