@@ -1,7 +1,6 @@
 import mongoose from 'mongoose';
 import { MessageStatus } from '../constants';
 import { ChatMessage } from '../types';
-import Room from './room';
 import User from './user';
 
 type Message = {
@@ -9,7 +8,7 @@ type Message = {
 	status: String;
 	isSystem: Boolean;
 	user: User;
-	room: Room;
+	roomCode: String;
 };
 type MessageDocument = mongoose.Document & Message;
 type MessageModel = mongoose.Model<MessageDocument>;
@@ -30,7 +29,10 @@ const messageSchema = new mongoose.Schema<MessageModel>(
 			default: false
 		},
 		user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-		room: { type: mongoose.Schema.Types.ObjectId, ref: 'Room', required: true }
+		roomCode: {
+			type: String,
+			required: true
+		}
 	},
 	{ timestamps: true }
 );
@@ -41,12 +43,22 @@ messageSchema.statics.createMsg = async function({
 	isSystem = false,
 	status = MessageStatus.SENT
 }: ChatMessage) {
-	const room = await Room.findOne({ code: userRoom.room });
 	const user = await User.findOne({ username: isSystem ? 'Chatbot' : userRoom.name });
-	if (user && room) {
-		const message = await Message.create({ content, isSystem, status, user: user, room: room });
+	if (user) {
+		const message = await Message.create({ content, isSystem, status, user: user._id, roomCode: userRoom.room });
 		return message;
 	}
+};
+
+messageSchema.statics.getMsgs = async function(roomCode: String) {
+	console.log(roomCode);
+	const messages = await Message.find({ roomCode }).populate({
+		path: 'user',
+		select: 'firstName lastName username email',
+		model: 'User'
+	});
+	console.log(messages);
+	return messages;
 };
 
 const Message = mongoose.model<MessageDocument, MessageModel>('Message', messageSchema);

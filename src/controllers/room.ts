@@ -26,7 +26,7 @@ export default {
 	onCreateRoom: async (req: any, res: any) => {
 		try {
 			const { description } = req.body;
-			const newRoom = await Room.schema.statics.createRoom(req.userId, description);
+			const newRoom = await Room.schema.statics.createRoom(req.userId, description.trim());
 			return res.status(201).json({
 				status: 'success',
 				data: { room: newRoom }
@@ -43,7 +43,8 @@ export default {
 			const { roomCode } = req.body;
 			const room = await Room.findOne({ code: roomCode });
 			if (room) {
-				const duplicateUser = await room.users.find((user: any) => user._id === req.userId);
+				console.log(room.users);
+				const duplicateUser = await room.users.find(req.userId);
 				if (duplicateUser) {
 					throw 'User already in room';
 				} else {
@@ -63,6 +64,7 @@ export default {
 			});
 		}
 	},
+	// ToDO revise
 	onLeaveRoom: async (req: any, res: any) => {
 		try {
 			const { nickname, roomCode } = req.body;

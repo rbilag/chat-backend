@@ -33,7 +33,6 @@ const userSchema = new Schema<UserModel>(
 			type: String,
 			required: true
 		}
-		// TODO add avatar
 	},
 	{ timestamps: true }
 );

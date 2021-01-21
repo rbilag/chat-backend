@@ -7,6 +7,7 @@ import logger from 'morgan';
 import indexRouter from './routes/index';
 import userRouter from './routes/user';
 import roomRouter from './routes/room';
+import messageRouter from './routes/message';
 import deleteRouter from './routes/delete';
 import { decode } from './middlewares/jwt';
 
@@ -77,6 +78,7 @@ connectDb().then(async () => {
 	app.use(`${URL_PREFIX}`, indexRouter);
 	app.use(`${URL_PREFIX}/users`, userRouter);
 	app.use(`${URL_PREFIX}/rooms`, decode, roomRouter);
+	app.use(`${URL_PREFIX}/message`, decode, messageRouter);
 	app.use(`${URL_PREFIX}/delete`, deleteRouter);
 	app.use('*', (req, res) => {
 		return res.status(404).json({

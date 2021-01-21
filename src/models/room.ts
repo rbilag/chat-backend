@@ -1,16 +1,16 @@
-import mongoose from 'mongoose';
+import { Schema, Document, Model, model } from 'mongoose';
 import cryptoRandomString from 'crypto-random-string';
 import User from './user';
 
 type Room = {
 	code: String;
 	description: String;
-	users: Array<User>;
+	users: Array<Schema.Types.ObjectId>;
 };
-type RoomDocument = mongoose.Document & Room;
-type RoomModel = mongoose.Model<RoomDocument>;
+type RoomDocument = Document & Room;
+type RoomModel = Model<RoomDocument>;
 
-const roomSchema = new mongoose.Schema<RoomModel>(
+const roomSchema = new Schema<RoomModel>(
 	{
 		code: {
 			type: String,
@@ -21,29 +21,23 @@ const roomSchema = new mongoose.Schema<RoomModel>(
 			type: String,
 			required: true
 		},
-		users: [ { type: mongoose.Schema.Types.ObjectId, ref: 'User' } ]
+		users: [ { type: Schema.Types.ObjectId, ref: 'User' } ]
 	},
 	{ timestamps: true }
 );
 
-roomSchema.statics.createRoom = async function(userId: String, description: String) {
-	const user = await User.findById(userId);
-	if (user) {
-		const code = await cryptoRandomString({ length: 6, type: 'alphanumeric' });
-		const room = await Room.create({ code, description, users: [ user ] });
-		return room;
-	}
+roomSchema.statics.createRoom = async function(userId: Schema.Types.ObjectId, description: String) {
+	const code = await cryptoRandomString({ length: 6, type: 'alphanumeric' });
+	const room = await Room.create({ code, description, users: [ userId ] });
+	return await Room.populate(room, { path: 'users', select: 'firstName lastName username email', model: 'User' });
 };
 
-roomSchema.statics.joinRoom = async function(room: RoomDocument, userId: String) {
-	const user = await User.findById(userId);
-	if (user) {
-		await room.users.push(user);
-		await room.save();
-		return room;
-	}
+roomSchema.statics.joinRoom = async function(room: RoomDocument, userId: Schema.Types.ObjectId) {
+	await room.users.push(userId);
+	await room.save();
+	return await Room.populate(room, { path: 'users', select: 'firstName lastName username email', model: 'User' });
 };
 
-const Room = mongoose.model<RoomDocument, RoomModel>('Room', roomSchema);
+const Room = model<RoomDocument, RoomModel>('Room', roomSchema);
 
 export default Room;
