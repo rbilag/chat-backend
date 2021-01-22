@@ -72,6 +72,7 @@ userSchema.statics.getUsers = async function() {
 
 userSchema.statics.findByLogin = async function(login: String) {
 	try {
+		// todo merge query
 		let user = await User.findOne({
 			username: login
 		});
@@ -86,6 +87,7 @@ userSchema.statics.findByLogin = async function(login: String) {
 
 userSchema.statics.deleteUserById = async function(id: String) {
 	try {
+		// todo try findbyidanddelete
 		const user = await User.findOneAndDelete({ _id: id });
 		return user;
 	} catch (error) {

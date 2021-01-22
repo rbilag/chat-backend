@@ -1,7 +1,7 @@
 {
 	"name": "chat-backend",
 	"version": "1.0.0",
-	"description": "",
+	"description": "Backend for my Chat application built on React",
 	"main": "server.js",
 	"scripts": {
 		"build": "tsc --project ./",

@@ -1,9 +1,11 @@
 import express from 'express';
 import User from '../models/user';
+import user from '../controllers/user';
 import { encode } from '../middlewares/jwt';
 
 const router = express.Router();
 
+router.post('/register', user.onCreateUser);
 router.post('/login', encode, async (req: any, res: any, next: any) => {
 	return res.status(200).json({
 		success: true,
