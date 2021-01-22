@@ -11,7 +11,7 @@ import messageRouter from './routes/message';
 import deleteRouter from './routes/delete';
 import { decode } from './middlewares/jwt';
 
-import { ChatEvent, MessageStatus, WELCOME_MESSAGES } from './constants';
+import { ChatEvent, ERROR_MESSAGES, MessageStatus, WELCOME_MESSAGES } from './constants';
 import { ChatMessage, UserRoom } from './types';
 import { connectDb } from './config/index';
 import models from './models';
@@ -83,7 +83,7 @@ connectDb().then(async () => {
 	app.use('*', (req, res) => {
 		return res.status(404).json({
 			success: false,
-			message: "API endpoint doesn't exist"
+			message: ERROR_MESSAGES.ENDPOINT_NOT_FOUND
 		});
 	});
 

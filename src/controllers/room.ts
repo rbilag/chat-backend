@@ -1,3 +1,4 @@
+import { ERROR_MESSAGES } from '../constants';
 import Room from '../models/room';
 import User from '../models/user';
 
@@ -44,7 +45,7 @@ export default {
 			const room = await Room.findOne({ code: roomCode });
 			if (room) {
 				if (room.users.includes(req.userId)) {
-					throw 'User already in room';
+					throw ERROR_MESSAGES.USER_IN_ROOM;
 				} else {
 					const joinedRoom = await Room.schema.statics.joinRoom(room, req.userId);
 					return res.status(200).json({
@@ -53,7 +54,7 @@ export default {
 					});
 				}
 			} else {
-				throw 'Room not found';
+				throw ERROR_MESSAGES.ROOM_NOT_FOUND;
 			}
 		} catch (err) {
 			return res.status(400).json({
@@ -73,7 +74,7 @@ export default {
 				const userIndex = await room.users.indexOf(user._id);
 				console.log(userIndex);
 				if (userIndex < 0) {
-					throw 'User does not exist';
+					throw ERROR_MESSAGES.USER_NOT_FOUND;
 				} else {
 					// TODO delete room if last user left
 					await room.users.splice(userIndex, 1);
@@ -84,7 +85,7 @@ export default {
 					});
 				}
 			} else {
-				throw 'Room not found';
+				throw ERROR_MESSAGES.ROOM_NOT_FOUND;
 			}
 		} catch (err) {
 			return res.status(400).json({

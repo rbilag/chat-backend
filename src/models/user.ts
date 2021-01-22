@@ -1,4 +1,6 @@
 import { Document, Model, model, Schema } from 'mongoose';
+import bcrypt from 'bcrypt';
+import { ERROR_MESSAGES } from '../constants';
 
 type User = {
 	username: String;
@@ -37,13 +39,15 @@ const userSchema = new Schema<UserModel>(
 	{ timestamps: true }
 );
 
-// TODO test
+// TODO test virtual fullName
 userSchema.virtual('fullName').get(function(this: User) {
 	return this.firstName + ' ' + this.lastName;
 });
 
 userSchema.statics.createUser = async function(userDetails: User) {
 	try {
+		const hash = await bcrypt.hash(userDetails.password, 10);
+		userDetails.password = hash;
 		const user = await User.create(userDetails);
 		return user;
 	} catch (error) {
@@ -54,7 +58,7 @@ userSchema.statics.createUser = async function(userDetails: User) {
 userSchema.statics.getUserById = async function(id: String) {
 	try {
 		const user = await User.findById(id);
-		if (!user) throw { error: 'User not found' };
+		if (!user) throw { error: ERROR_MESSAGES.USER_NOT_FOUND };
 		return user;
 	} catch (error) {
 		throw error;
