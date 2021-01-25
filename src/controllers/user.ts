@@ -6,7 +6,8 @@ export default {
 			const users = await User.schema.statics.getUsers();
 			return res.status(200).json({ success: true, users });
 		} catch (error) {
-			return res.status(400).json({ success: false, error: error });
+			console.log(error);
+			return res.status(400).json({ success: false, error: error.message });
 		}
 	},
 	onGetUserById: async (req: any, res: any) => {
@@ -14,7 +15,31 @@ export default {
 			const user = await User.schema.statics.getUserById(req.params.id);
 			return res.status(200).json({ success: true, user });
 		} catch (error) {
-			return res.status(400).json({ success: false, error: error });
+			console.log(error);
+			return res.status(400).json({ success: false, error: error.message });
+		}
+	},
+	onCheckAvailability: async (req: any, res: any) => {
+		try {
+			let { value, type } = req.body;
+			console.log({ value, type });
+			const isAvailable = await User.schema.statics.checkAvailability(value, type);
+			console.log(isAvailable);
+			return res.status(201).json({ success: true, isAvailable });
+		} catch (error) {
+			console.log(error);
+			return res.status(400).json({ success: false, error: error.message });
+		}
+	},
+	changeLoginStatus: async (req: any, res: any) => {
+		try {
+			let { newValue } = req.body;
+			const updatedUser = await User.schema.statics.changeLoginStatus(req.userId, newValue);
+			console.log(updatedUser);
+			return res.status(201).json({ success: true, user: updatedUser });
+		} catch (error) {
+			console.log(error);
+			return res.status(400).json({ success: false, error: error.message });
 		}
 	},
 	onCreateUser: async (req: any, res: any) => {
@@ -23,7 +48,7 @@ export default {
 			return res.status(201).json({ success: true, user });
 		} catch (error) {
 			console.log(error);
-			return res.status(400).json({ success: false, error: error });
+			return res.status(400).json({ success: false, error: error.message });
 		}
 	},
 	onDeleteUserById: async (req: any, res: any) => {
@@ -34,7 +59,8 @@ export default {
 				message: `Deleted user: ${user.username}.`
 			});
 		} catch (error) {
-			return res.status(400).json({ success: false, error: error });
+			console.log(error);
+			return res.status(400).json({ success: false, error: error.message });
 		}
 	}
 };

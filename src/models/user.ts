@@ -8,6 +8,7 @@ type User = {
 	lastName?: String;
 	email: String;
 	password: String;
+	isOnline: Boolean;
 };
 type UserDocument = Document & User;
 type UserModel = Model<UserDocument>;
@@ -34,7 +35,13 @@ const userSchema = new Schema<UserModel>(
 		password: {
 			type: String,
 			required: true
+		},
+		isOnline: {
+			type: Boolean,
+			required: true,
+			default: false
 		}
+		// socketID
 	},
 	{ timestamps: true }
 );
@@ -49,6 +56,26 @@ userSchema.statics.createUser = async function(userDetails: User) {
 		const hash = await bcrypt.hash(userDetails.password, 10);
 		userDetails.password = hash;
 		const user = await User.create(userDetails);
+		return user;
+	} catch (error) {
+		throw error;
+	}
+};
+
+userSchema.statics.checkAvailability = async function(value: String, type: String) {
+	try {
+		const existingUser =
+			type === 'email' ? await User.findOne({ email: value }) : await User.findOne({ username: value });
+		return existingUser ? false : true;
+	} catch (error) {
+		throw error;
+	}
+};
+
+userSchema.statics.changeLoginStatus = async function(id: String, newValue: Boolean) {
+	try {
+		const user = await User.findByIdAndUpdate(id, { isOnline: newValue });
+		if (!user) throw { error: ERROR_MESSAGES.USER_NOT_FOUND };
 		return user;
 	} catch (error) {
 		throw error;

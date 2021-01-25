@@ -18,28 +18,32 @@ export const encode = async (req: any, res: any, next: any) => {
 				console.log('Auth', authToken);
 				req.authToken = authToken;
 				req.username = user.username;
+				const updatedUser = await User.schema.statics.changeLoginStatus(user._id, true);
+				console.log(updatedUser);
 				next();
 			} else {
-				return res.status(401).json({ success: false, error: ERROR_MESSAGES.UNAUTHORIZED });
+				return res.status(401).json({ success: false, message: ERROR_MESSAGES.UNAUTHORIZED });
 			}
 		} else {
-			return res.status(400).json({ success: false, error: ERROR_MESSAGES.USER_NOT_FOUND });
+			throw new Error(ERROR_MESSAGES.USER_NOT_FOUND);
 		}
 	} catch (error) {
-		return res.status(400).json({ success: false, message: error.error });
+		console.log(error);
+		return res.status(400).json({ success: false, message: error.message });
 	}
 };
 
 export const decode = (req: any, res: any, next: any) => {
 	if (!req.headers['authorization']) {
-		return res.status(400).json({ success: false, message: ERROR_MESSAGES.NO_TOKEN });
+		return res.status(401).json({ success: false, message: ERROR_MESSAGES.NO_TOKEN });
 	}
-	const accessToken = req.headers.authorization.split(' ')[1];
 	try {
+		const accessToken = req.headers.authorization.split(' ')[1];
 		const decoded: any = jwt.verify(accessToken, process.env.SECRET_KEY!);
 		req.userId = decoded.userId;
 		return next();
 	} catch (error) {
+		console.log(error);
 		return res.status(401).json({ success: false, message: error.message });
 	}
 };

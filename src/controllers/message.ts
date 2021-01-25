@@ -10,10 +10,11 @@ export default {
 				status: 'success',
 				data: { messages }
 			});
-		} catch (err) {
+		} catch (error) {
+			console.log(error);
 			return res.status(400).json({
 				success: false,
-				error: err
+				error: error.message
 			});
 		}
 	}

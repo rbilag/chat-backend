@@ -17,10 +17,11 @@ export default {
 				status: 'success',
 				data: { rooms }
 			});
-		} catch (err) {
+		} catch (error) {
+			console.log(error);
 			return res.status(400).json({
 				success: false,
-				error: err
+				error: error.message
 			});
 		}
 	},
@@ -32,10 +33,11 @@ export default {
 				status: 'success',
 				data: { room: newRoom }
 			});
-		} catch (err) {
+		} catch (error) {
+			console.log(error);
 			return res.status(400).json({
 				success: false,
-				error: err
+				error: error.message
 			});
 		}
 	},
@@ -56,10 +58,11 @@ export default {
 			} else {
 				throw ERROR_MESSAGES.ROOM_NOT_FOUND;
 			}
-		} catch (err) {
+		} catch (error) {
+			console.log(error);
 			return res.status(400).json({
 				success: false,
-				error: err
+				error: error.message
 			});
 		}
 	},
@@ -87,10 +90,11 @@ export default {
 			} else {
 				throw ERROR_MESSAGES.ROOM_NOT_FOUND;
 			}
-		} catch (err) {
+		} catch (error) {
+			console.log(error);
 			return res.status(400).json({
 				success: false,
-				error: err
+				error: error.message
 			});
 		}
 	}
