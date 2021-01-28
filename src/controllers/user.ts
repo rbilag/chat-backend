@@ -3,7 +3,7 @@ import User from '../models/user';
 export default {
 	onGetAllUsers: async (req: any, res: any) => {
 		try {
-			const users = await User.schema.statics.getUsers();
+			const users = await User.getUsers();
 			return res.status(200).json({ success: true, users });
 		} catch (error) {
 			console.log(error);
@@ -12,7 +12,7 @@ export default {
 	},
 	onGetUserById: async (req: any, res: any) => {
 		try {
-			const user = await User.schema.statics.getUserById(req.params.id);
+			const user = await User.getUserById(req.params.id);
 			return res.status(200).json({ success: true, user });
 		} catch (error) {
 			console.log(error);
@@ -23,7 +23,7 @@ export default {
 		try {
 			let { value, type } = req.body;
 			console.log({ value, type });
-			const isAvailable = await User.schema.statics.checkAvailability(value, type);
+			const isAvailable = await User.checkAvailability(value, type);
 			console.log(isAvailable);
 			return res.status(201).json({ success: true, isAvailable });
 		} catch (error) {
@@ -34,9 +34,9 @@ export default {
 	changeLoginStatus: async (req: any, res: any) => {
 		try {
 			let { newValue } = req.body;
-			const updatedUser = await User.schema.statics.changeLoginStatus(req.userId, newValue);
+			const updatedUser = await User.changeLoginStatus(req.userId, newValue);
 			console.log(updatedUser);
-			return res.status(201).json({ success: true, user: updatedUser });
+			return res.status(200).json({ success: true, user: updatedUser });
 		} catch (error) {
 			console.log(error);
 			return res.status(400).json({ success: false, error: error.message });
@@ -44,7 +44,7 @@ export default {
 	},
 	onCreateUser: async (req: any, res: any) => {
 		try {
-			const user = await User.schema.statics.createUser(req.body);
+			const user = await User.createUser(req.body);
 			return res.status(201).json({ success: true, user });
 		} catch (error) {
 			console.log(error);
@@ -53,7 +53,7 @@ export default {
 	},
 	onDeleteUserById: async (req: any, res: any) => {
 		try {
-			const user = await User.schema.statics.deleteUserById(req.params.id);
+			const user = await User.deleteUserById(req.params.id);
 			return res.status(200).json({
 				success: true,
 				message: `Deleted user: ${user.username}.`

@@ -2,16 +2,28 @@ import { Document, Model, model, Schema } from 'mongoose';
 import bcrypt from 'bcrypt';
 import { ERROR_MESSAGES } from '../constants';
 
-type User = {
-	username: String;
-	firstName: String;
-	lastName?: String;
-	email: String;
-	password: String;
-	isOnline: Boolean;
-};
-type UserDocument = Document & User;
-type UserModel = Model<UserDocument>;
+export interface User {
+	username: string;
+	firstName: string;
+	lastName?: string;
+	email: string;
+	password: string;
+	isOnline: boolean;
+}
+
+export interface UserDocument extends User, Document {
+	getFullName(): string;
+}
+
+export interface UserModel extends Model<UserDocument> {
+	createUser(userDetails: User): Promise<UserDocument>;
+	checkAvailability(value: string, type: string): boolean;
+	changeLoginStatus(id: string, newValue: boolean): Promise<UserDocument>;
+	getUserById(id: string): Promise<UserDocument>;
+	getUsers(): Promise<UserDocument>;
+	findByLogin(login: string): Promise<UserDocument>;
+	deleteUserById(id: string): Promise<UserDocument>;
+}
 
 const userSchema = new Schema<UserModel>(
 	{
@@ -46,35 +58,33 @@ const userSchema = new Schema<UserModel>(
 	{ timestamps: true }
 );
 
-// TODO test virtual fullName
-userSchema.virtual('fullName').get(function(this: User) {
+userSchema.methods.getFullName = function(this: UserDocument) {
 	return this.firstName + ' ' + this.lastName;
-});
+};
 
-userSchema.statics.createUser = async function(userDetails: User) {
+userSchema.statics.createUser = async function(this: Model<UserDocument>, userDetails: User) {
 	try {
 		const hash = await bcrypt.hash(userDetails.password, 10);
 		userDetails.password = hash;
-		const user = await User.create(userDetails);
-		return user;
+		return await this.create(userDetails);
 	} catch (error) {
 		throw error;
 	}
 };
 
-userSchema.statics.checkAvailability = async function(value: String, type: String) {
+userSchema.statics.checkAvailability = async function(this: Model<UserDocument>, value: string, type: string) {
 	try {
 		const existingUser =
-			type === 'email' ? await User.findOne({ email: value }) : await User.findOne({ username: value });
+			type === 'email' ? await this.findOne({ email: value }) : await this.findOne({ username: value });
 		return existingUser ? false : true;
 	} catch (error) {
 		throw error;
 	}
 };
 
-userSchema.statics.changeLoginStatus = async function(id: String, newValue: Boolean) {
+userSchema.statics.changeLoginStatus = async function(this: Model<UserDocument>, id: string, newValue: boolean) {
 	try {
-		const user = await User.findByIdAndUpdate(id, { isOnline: newValue });
+		const user = await this.findByIdAndUpdate(id, { isOnline: newValue });
 		if (!user) throw { error: ERROR_MESSAGES.USER_NOT_FOUND };
 		return user;
 	} catch (error) {
@@ -82,9 +92,9 @@ userSchema.statics.changeLoginStatus = async function(id: String, newValue: Bool
 	}
 };
 
-userSchema.statics.getUserById = async function(id: String) {
+userSchema.statics.getUserById = async function(this: Model<UserDocument>, id: string) {
 	try {
-		const user = await User.findById(id);
+		const user = await this.findById(id);
 		if (!user) throw { error: ERROR_MESSAGES.USER_NOT_FOUND };
 		return user;
 	} catch (error) {
@@ -92,23 +102,24 @@ userSchema.statics.getUserById = async function(id: String) {
 	}
 };
 
-userSchema.statics.getUsers = async function() {
+userSchema.statics.getUsers = async function(this: Model<UserDocument>) {
 	try {
-		const user = await User.find();
-		return user;
+		return await this.find();
 	} catch (error) {
 		throw error;
 	}
 };
 
-userSchema.statics.findByLogin = async function(login: String) {
+userSchema.statics.findByLogin = async function(this: Model<UserDocument>, login: string) {
 	try {
 		// todo merge query
-		let user = await User.findOne({
+		console.log(this);
+		console.log(login);
+		let user = await this.findOne({
 			username: login
 		});
 		if (!user) {
-			user = await User.findOne({ email: login });
+			user = await this.findOne({ email: login });
 		}
 		return user;
 	} catch (error) {
@@ -116,11 +127,10 @@ userSchema.statics.findByLogin = async function(login: String) {
 	}
 };
 
-userSchema.statics.deleteUserById = async function(id: String) {
+userSchema.statics.deleteUserById = async function(this: Model<UserDocument>, id: string) {
 	try {
 		// todo try findbyidanddelete
-		const user = await User.findOneAndDelete({ _id: id });
-		return user;
+		return await this.findOneAndDelete({ _id: id });
 	} catch (error) {
 		throw error;
 	}
@@ -138,6 +148,4 @@ userSchema.statics.deleteUserById = async function(id: String) {
 //   }
 // });
 
-const User = model<UserDocument, UserModel>('User', userSchema);
-
-export default User;
+export default model<UserDocument, UserModel>('User', userSchema);

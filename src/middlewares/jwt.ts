@@ -5,7 +5,7 @@ import { ERROR_MESSAGES } from '../constants';
 
 export const encode = async (req: any, res: any, next: any) => {
 	try {
-		const user = await User.schema.statics.findByLogin(req.body.username);
+		const user = await User.findByLogin(req.body.username);
 		if (user) {
 			const matches = await bcrypt.compare(req.body.password, user.password);
 			if (matches) {
@@ -18,7 +18,7 @@ export const encode = async (req: any, res: any, next: any) => {
 				console.log('Auth', authToken);
 				req.authToken = authToken;
 				req.username = user.username;
-				const updatedUser = await User.schema.statics.changeLoginStatus(user._id, true);
+				const updatedUser = await User.changeLoginStatus(user._id, true);
 				console.log(updatedUser);
 				next();
 			} else {

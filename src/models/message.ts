@@ -1,17 +1,28 @@
 import { Schema, Document, Model, model } from 'mongoose';
 import { MessageStatus } from '../constants';
 import { ChatMessage } from '../types';
-import User from './user';
+import UserModel, { User } from './user';
 
-type Message = {
-	content: String;
-	status: String;
-	isSystem: Boolean;
+export interface Message {
+	content: string;
+	status: string;
+	isSystem: boolean;
+	user: Schema.Types.ObjectId | User;
+	roomCode: string;
+}
+
+export interface MessageDocument extends Message, Document {
+	user: Schema.Types.ObjectId;
+}
+
+export interface MessagePopulatedDocument extends Message, Document {
 	user: User;
-	roomCode: String;
-};
-type MessageDocument = Document & Message;
-type MessageModel = Model<MessageDocument>;
+}
+
+export interface MessageModel extends Model<MessageDocument> {
+	createMsg(chatMessage: ChatMessage): Promise<MessagePopulatedDocument>;
+	getMsgs(roomCode: string): Promise<MessagePopulatedDocument>;
+}
 
 const messageSchema = new Schema<MessageModel>(
 	{
@@ -37,18 +48,16 @@ const messageSchema = new Schema<MessageModel>(
 	{ timestamps: true }
 );
 
-messageSchema.statics.createMsg = async function({
-	userRoom,
-	content,
-	isSystem = false,
-	status = MessageStatus.SENT
-}: ChatMessage) {
-	const user = await User.findOne({ username: isSystem ? 'Chatbot' : userRoom.name });
+messageSchema.statics.createMsg = async function(
+	this: Model<MessageDocument>,
+	{ userRoom, content, isSystem = false, status = MessageStatus.SENT }: ChatMessage
+) {
+	const user = await UserModel.findOne({ username: isSystem ? 'Chatbot' : userRoom.name });
 	console.log(user);
 	if (user) {
-		const message = await Message.create({ content, isSystem, status, user: user._id, roomCode: userRoom.room });
+		const message = await this.create({ content, isSystem, status, user: user._id, roomCode: userRoom.room });
 		console.log(message);
-		return await Message.populate(message, {
+		return await this.populate(message, {
 			path: 'user',
 			select: 'username',
 			model: 'User'
@@ -56,15 +65,14 @@ messageSchema.statics.createMsg = async function({
 	}
 };
 
-messageSchema.statics.getMsgs = async function(roomCode: String) {
-	console.log(roomCode);
-	const messages = await Message.find({ roomCode }).populate({
-		path: 'user',
-		select: 'username',
-		model: 'User'
-	});
-	console.log(messages);
-	return messages;
+messageSchema.statics.getMsgs = async function(this: Model<MessageDocument>, roomCode: string) {
+	return await this.find({ roomCode })
+		.populate({
+			path: 'user',
+			select: 'username',
+			model: 'User'
+		})
+		.exec();
 };
 
 const Message = model<MessageDocument, MessageModel>('Message', messageSchema);

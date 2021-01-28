@@ -13,5 +13,6 @@ router.post('/login', encode, async (req: any, res: any, next: any) => {
 		data: { username: req.username }
 	});
 });
+router.post('/users/checkAvailability', user.onCheckAvailability);
 
 export default router;
