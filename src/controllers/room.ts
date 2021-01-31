@@ -1,6 +1,7 @@
+import { ChatEvent } from './../constants';
+import { deleteRoom } from '../utils/users';
 import { ERROR_MESSAGES } from '../constants';
 import Room from '../models/room';
-import User from '../models/user';
 
 const onGetRooms = async (req: any, res: any) => {
 	try {
@@ -68,26 +69,24 @@ const onJoinRoom = async (req: any, res: any) => {
 	}
 };
 
-// TODO revise
 const onLeaveRoom = async (req: any, res: any) => {
 	try {
-		const { nickname, roomCode } = req.body;
-		// TODO optimize? finalize authentication model
-		const user = await User.findOne({ username: nickname });
+		const { roomCode } = req.body;
 		const room = await Room.findOne({ code: roomCode });
-		if (room && user) {
-			// todo trigger socket event "LEFT"
-			const userIndex = await room.users.indexOf(user._id);
+		if (room) {
+			const userIndex = room.users.indexOf(req.userId);
 			console.log(userIndex);
 			if (userIndex < 0) {
 				throw ERROR_MESSAGES.USER_NOT_FOUND;
 			} else {
-				// TODO delete room if last user left
-				await room.users.splice(userIndex, 1);
-				room.save();
+				if (room.users.length === 1) {
+					await Room.deleteRoom(room.code);
+				} else {
+					room.users.splice(userIndex, 1);
+					await room.save();
+				}
 				return res.status(200).json({
-					status: 'success',
-					data: { room }
+					status: 'success'
 				});
 			}
 		} else {
@@ -101,7 +100,22 @@ const onLeaveRoom = async (req: any, res: any) => {
 		});
 	}
 };
+
+const onDeleteRoom = async (req: any, res: any) => {
+	const { roomCode } = req.body;
+	const io = req.app.get('io');
+	io.to(roomCode).emit(ChatEvent.ROOM_DELETED, roomCode);
+	const socketIDs = deleteRoom(roomCode);
+	socketIDs.forEach((socketID) => {
+		io.sockets.sockets[socketID].leave(roomCode);
+	});
+	await Room.deleteRoom(roomCode);
+	return res.status(200).json({
+		status: 'success'
+	});
+};
+
 // TODO implement
 // getRecentConversation, getConversationByRoomId, markConversationReadByRoomId
 
-export default { onGetRooms, onCreateRoom, onJoinRoom, onLeaveRoom };
+export default { onGetRooms, onCreateRoom, onJoinRoom, onLeaveRoom, onDeleteRoom };

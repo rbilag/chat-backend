@@ -7,6 +7,7 @@ router.get('/', room.onGetRooms);
 router.post('/new', room.onCreateRoom);
 router.post('/join', room.onJoinRoom);
 router.post('/leave', room.onLeaveRoom);
+router.post('/delete', room.onDeleteRoom);
 
 // router
 // 	.get('/', room.getRecentConversation)

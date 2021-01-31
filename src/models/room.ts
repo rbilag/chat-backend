@@ -24,6 +24,7 @@ export interface RoomPopulatedDocument extends Room, Document {
 export interface RoomModel extends Model<RoomDocument> {
 	createRoom(userId: Schema.Types.ObjectId, description: string): Promise<RoomPopulatedDocument>;
 	joinRoom(room: RoomDocument, userId: Schema.Types.ObjectId): Promise<RoomPopulatedDocument>;
+	deleteRoom(roomCode: string): Promise<RoomDocument>;
 }
 
 const roomSchema = new Schema<RoomModel>(
@@ -47,7 +48,7 @@ roomSchema.statics.createRoom = async function(
 	userId: Schema.Types.ObjectId,
 	description: string
 ) {
-	const code = await cryptoRandomString({ length: 6, type: 'alphanumeric' });
+	const code = cryptoRandomString({ length: 6, type: 'alphanumeric' });
 	const room = await this.create({ code, description, users: [ userId ] });
 	return await room
 		.populate({
@@ -56,28 +57,6 @@ roomSchema.statics.createRoom = async function(
 			model: 'User'
 		})
 		.execPopulate();
-	// ---------------------------------------------------------
-	// await this.create({ code, description, users: [ userId ] }, (error, room) => {
-	// 	console.log('IN MODEL AFTER CREATE');
-	// 	console.log(room);
-	// 	this.populate(room, {
-	// 		path: 'users',
-	// 		select: 'firstName lastName username email',
-	// 		model: 'User'
-	// 	}).then((populatedRoom) => {
-	// 		console.log('IN MODEL IN POPULATE');
-	// 		console.log(populatedRoom);
-	// 		return populatedRoom;
-	// 	});
-
-	// ---------------------------------------------------------
-	// room
-	// 	.populate({ path: 'users', select: 'firstName lastName username email', model: 'User' })
-	// 	.execPopulate((error, populatedRoom) => {
-	// 		console.log('IN MODEL IN POPULATE');
-	// 		console.log(populatedRoom);
-	// 		return populatedRoom;
-	// 	});
 };
 
 roomSchema.statics.joinRoom = async function(
@@ -85,7 +64,7 @@ roomSchema.statics.joinRoom = async function(
 	room: RoomDocument,
 	userId: Schema.Types.ObjectId
 ) {
-	await room.users.push(userId);
+	room.users.push(userId);
 	await room.save();
 
 	return await room
@@ -95,6 +74,10 @@ roomSchema.statics.joinRoom = async function(
 			model: 'User'
 		})
 		.execPopulate();
+};
+
+roomSchema.statics.deleteRoom = async function(this: Model<RoomDocument>, roomCode: string) {
+	return await this.findOneAndDelete({ code: roomCode });
 };
 
 export default model<RoomDocument, RoomModel>('Room', roomSchema);

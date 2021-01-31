@@ -1,3 +1,4 @@
+import User from './models/user';
 import express, { Application } from 'express';
 import { createServer, Server as HttpServer } from 'http';
 import socketio, { Server as IOServer, Socket } from 'socket.io';
@@ -15,7 +16,7 @@ import { ChatEvent, ERROR_MESSAGES, WELCOME_MESSAGES } from './constants';
 import { ChatMessage } from './types';
 import { connectDb } from './config/index';
 import models from './models';
-import { joinRoom, disconnect } from './utils/users';
+import { joinRoom, disconnect, leaveRoom, countUserSockets } from './utils/users';
 import Message from './models/message';
 
 const app: Application = express();
@@ -27,10 +28,7 @@ app.options('*', cors());
 const server: HttpServer = createServer(app);
 const io: IOServer = socketio(server);
 
-// [FOR FUTURE REFERENCE]
-// app.set('io', io);
-// TO ACCESS
-// req.app.get('io')
+app.set('io', io);
 
 connectDb().then(async () => {
 	io.on(ChatEvent.CONNECT, (socket: Socket) => {
@@ -39,7 +37,6 @@ connectDb().then(async () => {
 		socket.on(ChatEvent.JOIN, async ({ userRoom, isFirst }: any) => {
 			console.log('User joined room');
 			console.log(`[user]: ${JSON.stringify(userRoom)}`);
-			// TODO save sa mongo or not???
 			joinRoom(socket.id, userRoom.name, userRoom.room);
 			socket.join(userRoom.room);
 			if (isFirst) {
@@ -73,12 +70,30 @@ connectDb().then(async () => {
 			}
 		});
 
-		socket.on(ChatEvent.DISCONNECT, () => {
+		socket.on(ChatEvent.LEAVE, async ({ userRoom }: any) => {
+			console.log('Leave has been emitted');
+			try {
+				const socketIDs = leaveRoom(userRoom.room, userRoom.username);
+				socketIDs.forEach((socketID) => {
+					io.sockets.sockets[socketID].leave(userRoom.room);
+				});
+				const newMsg = await models.Message.createMsg({
+					userRoom,
+					content: `${userRoom.name} left the room.`,
+					isSystem: true
+				});
+				io.to(userRoom.room).emit(ChatEvent.MESSAGE, newMsg);
+			} catch (err) {
+				console.log(err);
+			}
+		});
+
+		socket.on(ChatEvent.DISCONNECT, async () => {
 			console.log('Client disconnected');
 			const user = disconnect(socket.id);
 			if (user) {
-				socket.leave(user.room);
-				io.to(user.room).emit(ChatEvent.MESSAGE, `${user.username} user has left the room.`);
+				const userDetails = await User.findByLogin(user.username);
+				if (countUserSockets(user.username) === 0) User.changeLoginStatus(userDetails._id, false);
 			}
 		});
 	});

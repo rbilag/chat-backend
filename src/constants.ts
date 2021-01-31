@@ -2,7 +2,9 @@ export enum ChatEvent {
 	CONNECT = 'connection',
 	DISCONNECT = 'disconnect',
 	JOIN = 'join',
-	MESSAGE = 'message'
+	MESSAGE = 'message',
+	LEAVE = 'leave',
+	ROOM_DELETED = 'room deleted'
 }
 export enum MessageStatus {
 	SENT = 'sent',
