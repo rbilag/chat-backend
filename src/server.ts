@@ -49,7 +49,9 @@ connectDb().then(async () => {
 						),
 						isSystem: true
 					});
+					const userDetails = await User.getUserByUsername(userRoom.name);
 					io.to(userRoom.room).emit(ChatEvent.MESSAGE, newMsg);
+					socket.to(userRoom.room).emit(ChatEvent.JOIN, { userDetails });
 				} catch (err) {
 					console.log(err);
 				}

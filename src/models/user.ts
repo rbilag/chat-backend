@@ -20,6 +20,7 @@ export interface UserModel extends Model<UserDocument> {
 	checkAvailability(value: string, type: string): boolean;
 	changeLoginStatus(id: string, newValue: boolean): Promise<UserDocument>;
 	getUserById(id: string): Promise<UserDocument>;
+	getUserByUsername(username: string): Promise<UserDocument>;
 	getUsers(): Promise<UserDocument>;
 	findByLogin(login: string): Promise<UserDocument>;
 	deleteUserById(id: string): Promise<UserDocument>;
@@ -95,6 +96,16 @@ userSchema.statics.changeLoginStatus = async function(this: Model<UserDocument>,
 userSchema.statics.getUserById = async function(this: Model<UserDocument>, id: string) {
 	try {
 		const user = await this.findById(id);
+		if (!user) throw { error: ERROR_MESSAGES.USER_NOT_FOUND };
+		return user;
+	} catch (error) {
+		throw error;
+	}
+};
+
+userSchema.statics.getUserByUsername = async function(this: Model<UserDocument>, username: string) {
+	try {
+		const user = await this.findOne({ username }, { firstName: 1, lastName: 1, username: 1, email: 1 });
 		if (!user) throw { error: ERROR_MESSAGES.USER_NOT_FOUND };
 		return user;
 	} catch (error) {

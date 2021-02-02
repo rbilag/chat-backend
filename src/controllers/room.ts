@@ -104,7 +104,7 @@ const onLeaveRoom = async (req: any, res: any) => {
 const onDeleteRoom = async (req: any, res: any) => {
 	const { roomCode } = req.body;
 	const io = req.app.get('io');
-	io.to(roomCode).emit(ChatEvent.ROOM_DELETED, roomCode);
+	io.to(roomCode).emit(ChatEvent.ROOM_DELETE, roomCode);
 	const socketIDs = deleteRoom(roomCode);
 	socketIDs.forEach((socketID) => {
 		io.sockets.sockets[socketID].leave(roomCode);

@@ -1,6 +1,7 @@
 import { Schema, Document, Model, model } from 'mongoose';
 import cryptoRandomString from 'crypto-random-string';
 import { User } from './user';
+import Message from './message';
 
 export interface Room {
 	code: string;
@@ -77,6 +78,7 @@ roomSchema.statics.joinRoom = async function(
 };
 
 roomSchema.statics.deleteRoom = async function(this: Model<RoomDocument>, roomCode: string) {
+	await Message.deleteMany({ roomCode });
 	return await this.findOneAndDelete({ code: roomCode });
 };
 
