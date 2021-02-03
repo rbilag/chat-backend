@@ -1,7 +1,9 @@
 import { ChatEvent } from './../constants';
-import { deleteRoom } from '../utils/users';
+import { deleteRoom, leaveRoom } from '../utils/users';
 import { ERROR_MESSAGES } from '../constants';
 import Room from '../models/room';
+import Message from '../models/message';
+import User from '../models/user';
 
 const onGetRooms = async (req: any, res: any) => {
 	try {
@@ -79,12 +81,25 @@ const onLeaveRoom = async (req: any, res: any) => {
 			if (userIndex < 0) {
 				throw ERROR_MESSAGES.USER_NOT_FOUND;
 			} else {
+				const userDetails = await User.getUserById(req.userId);
+				const sockets = req.app.get('io').sockets.sockets;
+				const socketIDs = leaveRoom(roomCode, userDetails.username);
+				sockets[socketIDs[0]].to(roomCode).emit(ChatEvent.LEAVE, { userDetails, leftRoom: roomCode });
 				if (room.users.length === 1) {
 					await Room.deleteRoom(room.code);
 				} else {
 					room.users.splice(userIndex, 1);
 					await room.save();
+					const newMsg = await Message.createMsg({
+						userRoom: { name: userDetails.username, room: roomCode },
+						content: `${userDetails.username} left the room.`,
+						isSystem: true
+					});
+					sockets[socketIDs[0]].to(roomCode).emit(ChatEvent.MESSAGE, newMsg);
 				}
+				socketIDs.forEach((socketID, i) => {
+					sockets[socketID].leave(roomCode);
+				});
 				return res.status(200).json({
 					status: 'success'
 				});

@@ -51,7 +51,7 @@ connectDb().then(async () => {
 					});
 					const userDetails = await User.getUserByUsername(userRoom.name);
 					io.to(userRoom.room).emit(ChatEvent.MESSAGE, newMsg);
-					socket.to(userRoom.room).emit(ChatEvent.JOIN, { userDetails });
+					socket.to(userRoom.room).emit(ChatEvent.JOIN, { userDetails, joinedRoom: userRoom.room });
 				} catch (err) {
 					console.log(err);
 				}
@@ -67,24 +67,6 @@ connectDb().then(async () => {
 					content: m.content
 				});
 				io.to(m.userRoom.room).emit(ChatEvent.MESSAGE, newMsg);
-			} catch (err) {
-				console.log(err);
-			}
-		});
-
-		socket.on(ChatEvent.LEAVE, async ({ userRoom }: any) => {
-			console.log('Leave has been emitted');
-			try {
-				const socketIDs = leaveRoom(userRoom.room, userRoom.username);
-				socketIDs.forEach((socketID) => {
-					io.sockets.sockets[socketID].leave(userRoom.room);
-				});
-				const newMsg = await models.Message.createMsg({
-					userRoom,
-					content: `${userRoom.name} left the room.`,
-					isSystem: true
-				});
-				io.to(userRoom.room).emit(ChatEvent.MESSAGE, newMsg);
 			} catch (err) {
 				console.log(err);
 			}

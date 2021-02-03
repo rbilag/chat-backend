@@ -95,7 +95,7 @@ userSchema.statics.changeLoginStatus = async function(this: Model<UserDocument>,
 
 userSchema.statics.getUserById = async function(this: Model<UserDocument>, id: string) {
 	try {
-		const user = await this.findById(id);
+		const user = await this.findOne({ _id: id }, { firstName: 1, lastName: 1, username: 1, email: 1 });
 		if (!user) throw { error: ERROR_MESSAGES.USER_NOT_FOUND };
 		return user;
 	} catch (error) {
