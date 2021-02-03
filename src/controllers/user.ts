@@ -44,8 +44,8 @@ export default {
 	},
 	onCreateUser: async (req: any, res: any) => {
 		try {
-			const user = await User.createUser(req.body);
-			return res.status(201).json({ success: true, user });
+			await User.createUser(req.body);
+			return res.status(201).json({ success: true });
 		} catch (error) {
 			console.log(error);
 			return res.status(400).json({ success: false, error: error.message });
