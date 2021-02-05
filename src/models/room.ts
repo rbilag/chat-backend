@@ -8,7 +8,6 @@ export interface Room {
 	description: string;
 	lastActivity?: Date;
 	lastMessagePreview?: string;
-	unread?: number;
 	users: Array<Schema.Types.ObjectId> | Array<User>;
 }
 
@@ -23,7 +22,7 @@ export interface RoomPopulatedDocument extends Room, Document {
 export interface RoomModel extends Model<RoomDocument> {
 	createRoom(userId: Schema.Types.ObjectId, description: string): Promise<RoomPopulatedDocument>;
 	joinRoom(room: RoomDocument, userId: Schema.Types.ObjectId): Promise<RoomPopulatedDocument>;
-	updatePreview(roomCode: string, message: string): Promise<RoomDocument>;
+	updatePreview(roomCode: string, message: string): Promise<RoomPopulatedDocument>;
 	deleteRoom(roomCode: string): Promise<RoomDocument>;
 }
 
@@ -44,10 +43,6 @@ const roomSchema = new Schema<RoomModel>(
 		},
 		lastMessagePreview: {
 			type: String
-		},
-		unread: {
-			type: Number,
-			default: 0
 		}
 	},
 	{ timestamps: true }
@@ -86,11 +81,24 @@ roomSchema.statics.joinRoom = async function(
 		.execPopulate();
 };
 
-roomSchema.statics.updatePreview = async function(this: Model<RoomDocument>, roomCode: string, message: string) {
+roomSchema.statics.updatePreview = async function(
+	this: Model<RoomPopulatedDocument>,
+	roomCode: string,
+	message: string
+) {
 	return await this.findOneAndUpdate(
 		{ code: roomCode },
-		{ lastMessagePreview: message.slice(0, 30), lastActivity: new Date() }
-	);
+		{ lastMessagePreview: message.slice(0, 40), lastActivity: new Date() },
+		{
+			new: true
+		}
+	)
+		.populate({
+			path: 'users',
+			select: 'firstName lastName username email',
+			model: 'User'
+		})
+		.exec();
 };
 
 roomSchema.statics.deleteRoom = async function(this: Model<RoomDocument>, roomCode: string) {

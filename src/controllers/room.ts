@@ -8,6 +8,7 @@ import User from '../models/user';
 const onGetRooms = async (req: any, res: any) => {
 	try {
 		const rooms = await Room.find({ users: req.userId })
+			.sort({ lastActivity: -1 })
 			.populate({
 				path: 'users',
 				select: 'firstName lastName username email',
@@ -95,7 +96,7 @@ const onLeaveRoom = async (req: any, res: any) => {
 						content: `${userDetails.username} left the room.`,
 						isSystem: true
 					});
-					sockets[socketIDs[0]].to(roomCode).emit(ChatEvent.MESSAGE, newMsg);
+					sockets[socketIDs[0]].to(roomCode).emit(ChatEvent.MESSAGE, { newMsg });
 				}
 				socketIDs.forEach((socketID, i) => {
 					sockets[socketID].leave(roomCode);

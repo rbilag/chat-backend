@@ -50,7 +50,7 @@ connectDb().then(async () => {
 						isSystem: true
 					});
 					const userDetails = await User.getUserByUsername(userRoom.name);
-					io.to(userRoom.room).emit(ChatEvent.MESSAGE, newMsg);
+					io.to(userRoom.room).emit(ChatEvent.MESSAGE, { newMsg });
 					socket.to(userRoom.room).emit(ChatEvent.JOIN, { userDetails, joinedRoom: userRoom.room });
 				} catch (err) {
 					console.log(err);
@@ -66,7 +66,8 @@ connectDb().then(async () => {
 					userRoom: m.userRoom,
 					content: m.content
 				});
-				io.to(m.userRoom.room).emit(ChatEvent.MESSAGE, newMsg);
+				const updatedRoom = await models.Room.updatePreview(m.userRoom.room, newMsg.content);
+				io.to(m.userRoom.room).emit(ChatEvent.MESSAGE, { newMsg, updatedRoom });
 			} catch (err) {
 				console.log(err);
 			}

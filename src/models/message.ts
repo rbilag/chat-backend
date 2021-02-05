@@ -59,7 +59,7 @@ messageSchema.statics.createMsg = async function(
 		console.log(message);
 		return await this.populate(message, {
 			path: 'user',
-			select: 'username',
+			select: 'username firstName lastName',
 			model: 'User'
 		});
 	}
@@ -69,7 +69,7 @@ messageSchema.statics.getMsgs = async function(this: Model<MessageDocument>, roo
 	return await this.find({ roomCode })
 		.populate({
 			path: 'user',
-			select: 'username',
+			select: 'username firstName lastName',
 			model: 'User'
 		})
 		.exec();
