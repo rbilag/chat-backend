@@ -20,19 +20,16 @@ import { joinRoom, disconnect, countUserSockets } from './utils/users';
 import Message from './models/message';
 
 const PORT: string | number = process.env.PORT || 8080;
-console.log(PORT);
 const WHITELIST = [
 	'http://localhost:3000',
 	'http://localhost:8080',
-	`https://rose-chat-backend.herokuapp.com:${PORT}`,
-	`http://rose-chat-backend.herokuapp.com:${PORT}`,
 	`https://rose-chat-backend.herokuapp.com`,
-	`http://rose-chat-backend.herokuapp.com`,
-	`rose-chat-backend.herokuapp.com:${PORT}`,
-	`rose-chat-backend.herokuapp.com`
+	`http://rose-chat-backend.herokuapp.com`
 ];
 const corsOptions: CorsOptions = {
 	origin: function(origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
+		console.log('ORIGIN');
+		console.log(origin);
 		if (origin && WHITELIST.indexOf(origin) !== -1) {
 			callback(null, true);
 		} else {
