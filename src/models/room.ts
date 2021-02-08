@@ -36,7 +36,7 @@ export interface RoomModel extends Model<RoomDocument> {
 	deleteRoom(roomCode: string): Promise<RoomDocument>;
 }
 
-const roomSchema = new Schema<RoomModel>(
+const roomSchema = new Schema<RoomDocument>(
 	{
 		code: {
 			type: String,
@@ -96,11 +96,7 @@ roomSchema.statics.joinRoom = async function(
 		.execPopulate();
 };
 
-roomSchema.statics.updatePreview = async function(
-	this: Model<RoomPopulatedDocument>,
-	roomCode: string,
-	message: string
-) {
+roomSchema.statics.updatePreview = async function(this: Model<RoomDocument>, roomCode: string, message: string) {
 	return await this.findOneAndUpdate(
 		{ code: roomCode },
 		{ lastMessagePreview: message.slice(0, 40), lastActivity: new Date() },
@@ -117,7 +113,7 @@ roomSchema.statics.updatePreview = async function(
 };
 
 roomSchema.statics.updateUnread = async function(
-	this: Model<RoomPopulatedDocument>,
+	this: Model<RoomDocument>,
 	unread: number,
 	roomCode: string,
 	username: string

@@ -24,7 +24,7 @@ export interface MessageModel extends Model<MessageDocument> {
 	getMsgs(roomCode: string): Promise<MessagePopulatedDocument>;
 }
 
-const messageSchema = new Schema<MessageModel>(
+const messageSchema = new Schema<MessageDocument>(
 	{
 		content: {
 			type: String,
@@ -55,7 +55,6 @@ messageSchema.statics.createMsg = async function(
 	const user = await UserModel.findOne({ username: isSystem ? 'Chatbot' : userRoom.name });
 	if (user) {
 		const message = await this.create({ content, isSystem, status, user: user._id, roomCode: userRoom.room });
-		console.log(message);
 		return await this.populate(message, {
 			path: 'user',
 			select: 'username firstName lastName',

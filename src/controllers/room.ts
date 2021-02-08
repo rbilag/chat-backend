@@ -81,9 +81,10 @@ const onLeaveRoom = async (req: any, res: any) => {
 				throw ERROR_MESSAGES.USER_NOT_FOUND;
 			} else {
 				const userDetails = await User.getUserById(req.userId);
-				const sockets = req.app.get('io').sockets.sockets;
+				const sockets = await req.app.get('io').sockets.sockets;
 				const socketIDs = leaveRoom(roomCode, userDetails.username);
-				sockets[socketIDs[0]].to(roomCode).emit(ChatEvent.LEAVE, { userDetails, leftRoom: roomCode });
+				const currentSocket = await sockets.get(socketIDs[0]);
+				await currentSocket.to(roomCode).emit(ChatEvent.LEAVE, { userDetails, leftRoom: roomCode });
 				if (room.users.length === 1) {
 					await Room.deleteRoom(room.code);
 				} else {
@@ -94,10 +95,10 @@ const onLeaveRoom = async (req: any, res: any) => {
 						content: `${userDetails.username} left the room.`,
 						isSystem: true
 					});
-					sockets[socketIDs[0]].to(roomCode).emit(ChatEvent.MESSAGE, { newMsg });
+					currentSocket.to(roomCode).emit(ChatEvent.MESSAGE, { newMsg });
 				}
 				socketIDs.forEach((socketID, i) => {
-					sockets[socketID].leave(roomCode);
+					sockets.get(socketID).leave(roomCode);
 				});
 				return res.status(200).json({
 					status: 'success'
@@ -121,7 +122,7 @@ const onDeleteRoom = async (req: any, res: any) => {
 	io.to(roomCode).emit(ChatEvent.ROOM_DELETE, roomCode);
 	const socketIDs = deleteRoom(roomCode);
 	socketIDs.forEach((socketID) => {
-		io.sockets.sockets[socketID].leave(roomCode);
+		io.sockets.sockets.get(socketID).leave(roomCode);
 	});
 	await Room.deleteRoom(roomCode);
 	return res.status(200).json({

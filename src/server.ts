@@ -2,7 +2,7 @@ import User from './models/user';
 import express, { Application } from 'express';
 import { createServer, Server as HttpServer } from 'http';
 import socketio, { Server as IOServer, Socket } from 'socket.io';
-import cors from 'cors';
+import cors, { CorsOptions } from 'cors';
 import logger from 'morgan';
 
 import indexRouter from './routes/index';
@@ -16,17 +16,28 @@ import { ChatEvent, ERROR_MESSAGES, WELCOME_MESSAGES } from './constants';
 import { ChatMessage } from './types';
 import { connectDb } from './config/index';
 import models from './models';
-import { joinRoom, disconnect, leaveRoom, countUserSockets } from './utils/users';
+import { joinRoom, disconnect, countUserSockets } from './utils/users';
 import Message from './models/message';
 
+const WHITELIST = [ 'http://localhost:3000', 'http://localhost:8080', 'https://rose-chat-backend.herokuapp.com' ];
+const corsOptions: CorsOptions = {
+	origin: function(origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
+		if (origin && WHITELIST.indexOf(origin) !== -1) {
+			callback(null, true);
+		} else {
+			callback(new Error('Not allowed by CORS'));
+		}
+	},
+	methods: [ 'GET', 'POST' ],
+	credentials: true
+};
 const app: Application = express();
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cors());
-app.options('*', cors());
+app.use(cors(corsOptions));
 const server: HttpServer = createServer(app);
-const io: IOServer = socketio(server);
+const io: IOServer = (socketio as any)(server, { cors: corsOptions });
 
 app.set('io', io);
 

@@ -26,7 +26,7 @@ export interface UserModel extends Model<UserDocument> {
 	deleteUserById(id: string): Promise<UserDocument>;
 }
 
-const userSchema = new Schema<UserModel>(
+const userSchema = new Schema<UserDocument>(
 	{
 		username: {
 			type: String,
