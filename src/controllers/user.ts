@@ -22,9 +22,7 @@ export default {
 	onCheckAvailability: async (req: any, res: any) => {
 		try {
 			let { value, type } = req.body;
-			console.log({ value, type });
 			const isAvailable = await User.checkAvailability(value, type);
-			console.log(isAvailable);
 			return res.status(201).json({ success: true, isAvailable });
 		} catch (error) {
 			console.log(error);
@@ -35,7 +33,6 @@ export default {
 		try {
 			let { newValue } = req.body;
 			const updatedUser = await User.changeLoginStatus(req.userId, newValue);
-			console.log(updatedUser);
 			return res.status(200).json({ success: true, user: updatedUser });
 		} catch (error) {
 			console.log(error);

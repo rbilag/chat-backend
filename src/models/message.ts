@@ -53,7 +53,6 @@ messageSchema.statics.createMsg = async function(
 	{ userRoom, content, isSystem = false, status = MessageStatus.SENT }: ChatMessage
 ) {
 	const user = await UserModel.findOne({ username: isSystem ? 'Chatbot' : userRoom.name });
-	console.log(user);
 	if (user) {
 		const message = await this.create({ content, isSystem, status, user: user._id, roomCode: userRoom.room });
 		console.log(message);

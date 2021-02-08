@@ -33,7 +33,6 @@ app.set('io', io);
 connectDb().then(async () => {
 	io.on(ChatEvent.CONNECT, (socket: Socket) => {
 		console.log(`Client connected..`);
-
 		socket.on(ChatEvent.JOIN, async ({ userRoom, isFirst }: any) => {
 			console.log('User joined room');
 			console.log(`[user]: ${JSON.stringify(userRoom)}`);
@@ -68,6 +67,16 @@ connectDb().then(async () => {
 				});
 				const updatedRoom = await models.Room.updatePreview(m.userRoom.room, newMsg.content);
 				io.to(m.userRoom.room).emit(ChatEvent.MESSAGE, { newMsg, updatedRoom });
+			} catch (err) {
+				console.log(err);
+			}
+		});
+
+		socket.on(ChatEvent.UNREAD, async ({ unread, roomCode, username }) => {
+			console.log('Update unread has been emitted');
+			console.log(`[update unread]: ${JSON.stringify({ unread, roomCode, username })}`);
+			try {
+				await models.Room.updateUnread(unread, roomCode, username);
 			} catch (err) {
 				console.log(err);
 			}

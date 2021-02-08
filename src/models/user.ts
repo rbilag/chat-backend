@@ -54,7 +54,6 @@ const userSchema = new Schema<UserModel>(
 			required: true,
 			default: false
 		}
-		// socketID
 	},
 	{ timestamps: true }
 );
@@ -124,8 +123,6 @@ userSchema.statics.getUsers = async function(this: Model<UserDocument>) {
 userSchema.statics.findByLogin = async function(this: Model<UserDocument>, login: string) {
 	try {
 		// todo merge query
-		console.log(this);
-		console.log(login);
 		let user = await this.findOne({
 			username: login
 		});
@@ -150,13 +147,6 @@ userSchema.statics.deleteUserById = async function(this: Model<UserDocument>, id
 // TODO handling of deleted user's msgs and rooms
 // userSchema.pre('remove', function(next: any) {
 // 	this.model('Message').deleteMany({ user: this._id }, next);
-// });
-
-// TODO password hash
-// userSchema.pre<UserDocument>("save", function(next) {
-//   if (this.isModified("password")) {
-//     this.password = hashPassword(this.password)
-//   }
 // });
 
 export default model<UserDocument, UserModel>('User', userSchema);

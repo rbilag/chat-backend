@@ -18,8 +18,7 @@ export const encode = async (req: any, res: any, next: any) => {
 				console.log('Auth', authToken);
 				req.authToken = authToken;
 				req.username = user.username;
-				const updatedUser = await User.changeLoginStatus(user._id, true);
-				console.log(updatedUser);
+				await User.changeLoginStatus(user._id, true);
 				next();
 			} else {
 				return res.status(401).json({ success: false, message: ERROR_MESSAGES.UNAUTHORIZED });

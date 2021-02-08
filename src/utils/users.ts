@@ -7,16 +7,12 @@ export interface UserSocket {
 let users: Array<UserSocket> = [];
 
 export function joinRoom(socketId: string, username: string, room: string) {
-	console.log('ON JOIN ROOM');
-	console.log(users);
 	const userIndex = users.findIndex((user) => user.socketId === socketId);
 	if (userIndex > 0) {
 		users[userIndex].rooms.push(room);
 	} else {
 		users.push({ socketId, username, rooms: [ room ] });
 	}
-	console.log(users);
-	console.log('ON JOIN ROOM END');
 	return users;
 }
 
@@ -29,7 +25,6 @@ export function disconnect(socketId: string) {
 }
 
 export function leaveRoom(room: string, username: string) {
-	console.log('ON LEAVE ROOM');
 	let socketIDs: Array<string> = [];
 	users.forEach((user, i) => {
 		if (user.username === username) {
@@ -37,8 +32,6 @@ export function leaveRoom(room: string, username: string) {
 			users[i].rooms = users[i].rooms.filter((currentRoom) => currentRoom !== room);
 		}
 	});
-	console.log(socketIDs);
-	console.log('ON LEAVE ROOM END');
 	return socketIDs;
 }
 
@@ -47,7 +40,6 @@ export function countUserSockets(username: string) {
 }
 
 export function deleteRoom(room: string) {
-	console.log('ON DELETE ROOM');
 	let socketIDs: Array<string> = [];
 	users.forEach((user, i) => {
 		if (user.rooms.includes(room)) {
@@ -55,7 +47,5 @@ export function deleteRoom(room: string) {
 			users[i].rooms = users[i].rooms.filter((currentRoom) => currentRoom !== room);
 		}
 	});
-	console.log(socketIDs);
-	console.log('ON DELETE ROOM END');
 	return socketIDs;
 }

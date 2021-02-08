@@ -7,15 +7,14 @@ import User from '../models/user';
 
 const onGetRooms = async (req: any, res: any) => {
 	try {
-		const rooms = await Room.find({ users: req.userId })
+		const rooms = await Room.find({ 'users.user': req.userId })
 			.sort({ lastActivity: -1 })
 			.populate({
-				path: 'users',
+				path: 'users.user',
 				select: 'firstName lastName username email',
 				model: 'User'
 			})
 			.exec();
-		console.log(rooms);
 		return res.status(200).json({
 			status: 'success',
 			data: { rooms }
@@ -51,7 +50,7 @@ const onJoinRoom = async (req: any, res: any) => {
 		const { roomCode } = req.body;
 		const room = await Room.findOne({ code: roomCode });
 		if (room) {
-			if (room.users.includes(req.userId)) {
+			if (room.users.findIndex((roomUser) => roomUser.user == req.userId) >= 0) {
 				throw ERROR_MESSAGES.USER_IN_ROOM;
 			} else {
 				const joinedRoom = await Room.joinRoom(room, req.userId);
@@ -77,8 +76,7 @@ const onLeaveRoom = async (req: any, res: any) => {
 		const { roomCode } = req.body;
 		const room = await Room.findOne({ code: roomCode });
 		if (room) {
-			const userIndex = room.users.indexOf(req.userId);
-			console.log(userIndex);
+			const userIndex = room.users.findIndex((roomUser) => roomUser.user == req.userId);
 			if (userIndex < 0) {
 				throw ERROR_MESSAGES.USER_NOT_FOUND;
 			} else {
@@ -130,8 +128,5 @@ const onDeleteRoom = async (req: any, res: any) => {
 		status: 'success'
 	});
 };
-
-// TODO implement
-// getRecentConversation, getConversationByRoomId, markConversationReadByRoomId
 
 export default { onGetRooms, onCreateRoom, onJoinRoom, onLeaveRoom, onDeleteRoom };
