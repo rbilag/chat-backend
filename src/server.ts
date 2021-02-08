@@ -20,23 +20,23 @@ import { joinRoom, disconnect, countUserSockets } from './utils/users';
 import Message from './models/message';
 
 const PORT: string | number = process.env.PORT || 8080;
-const WHITELIST = [
-	'http://localhost:3000',
-	'http://localhost:8080',
-	`https://rose-chat-backend.herokuapp.com`,
-	`http://rose-chat-backend.herokuapp.com`
-];
+// const WHITELIST = [
+// 	'http://localhost:3000',
+// 	'http://localhost:8080',
+// 	`https://rose-chat-backend.herokuapp.com`,
+// 	`http://rose-chat-backend.herokuapp.com`
+// ];
 const corsOptions: CorsOptions = {
-	origin: function(origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
-		console.log('ORIGIN');
-		console.log(origin);
-		if (origin && WHITELIST.indexOf(origin) !== -1) {
-			callback(null, true);
-		} else {
-			callback(new Error('Not allowed by CORS'));
-		}
-	},
-	credentials: true
+	// origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+	// 	console.log('ORIGIN');
+	// 	console.log(origin);
+	// 	if (origin && WHITELIST.indexOf(origin) !== -1) {
+	// 		callback(null, true);
+	// 	} else {
+	// 		callback(new Error('Not allowed by CORS'));
+	// 	}
+	// },
+	credentials: false
 };
 const app: Application = express();
 app.use(logger('dev'));
