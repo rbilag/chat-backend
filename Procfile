@@ -1,1 +1,1 @@
-web: npm run prod
+web: node ./dist/server.js
