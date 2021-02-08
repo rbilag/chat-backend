@@ -9,11 +9,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
         with:
-          repository:  rosebilag/chat-backend
+          repository: rosebilag/chat-backend
           ref: master
       - name: Login to Heroku Container registry
         env:
-          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }} 
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
         run: heroku container:login
       - name: "Add remote"
         shell: "bash"
