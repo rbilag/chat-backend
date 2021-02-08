@@ -1,25 +1,16 @@
-name: CI
+name: Deploy
 on:
   push:
-    branches: [ main ]
+    branches:
+      - master
 jobs:
-  deploy-chat-backend:
+  build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
+      - uses: akhileshns/heroku-deploy@v3.10.9
         with:
-          repository: rosebilag/chat-backend
-          ref: master
-      - name: Login to Heroku Container registry
-        env:
-          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-        run: heroku container:login
-      - name: "Add remote"
-        shell: "bash"
-        run: |
-          heroku git:remote --app ${{ secrets.HEROKU_APP_NAME }}
-      - name: "Push to heroku"
-        shell: "bash"
-        run: |
-          git push heroku HEAD:master
+          heroku_api_key: ${{secrets.HEROKU_API_KEY}}
+          heroku_app_name: ${{secrets.HEROKU_APP_NAME}}
+          heroku_email: ${{secrets.HEROKU_EMAIL}}
+          remote_branch: master  
