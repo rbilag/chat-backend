@@ -3,19 +3,23 @@ on:
   push:
     branches: [ main ]
 jobs:
-  build:
+  deploy-chat-backend:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v1
+        with:
+          repository:  rosebilag/chat-backend
+          ref: master
       - name: Login to Heroku Container registry
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }} 
         run: heroku container:login
-      - name: Build and push        
-        env:
-          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }} 
-        run: heroku container:push -a ${{ secrets.HEROKU_APP_NAME }} web
-      - name: Release
-        env:
-          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }} 
-        run: heroku container:release -a ${{ secrets.HEROKU_APP_NAME }} web
+      - name: "Add remote"
+        shell: "bash"
+        run: |
+          heroku git:remote --app ${{ secrets.HEROKU_APP_NAME }}
+      - name: "Push to heroku"
+        shell: "bash"
+        run: |
+          git push heroku HEAD:master
