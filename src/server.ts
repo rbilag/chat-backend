@@ -19,7 +19,12 @@ import models from './models';
 import { joinRoom, disconnect, countUserSockets } from './utils/users';
 import Message from './models/message';
 
-const WHITELIST = [ 'http://localhost:3000', 'http://localhost:8080', 'https://rose-chat-backend.herokuapp.com' ];
+const WHITELIST = [
+	'http://localhost:3000',
+	'http://localhost:8080',
+	'https://rose-chat-backend.herokuapp.com' + process.env.PORT,
+	'https://rose-chat-backend.herokuapp.com:8080'
+];
 const corsOptions: CorsOptions = {
 	origin: function(origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
 		if (origin && WHITELIST.indexOf(origin) !== -1) {
