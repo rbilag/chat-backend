@@ -95,7 +95,7 @@ const onLeaveRoom = async (req: any, res: any) => {
 						content: `${userDetails.username} left the room.`,
 						isSystem: true
 					});
-					currentSocket.to(roomCode).emit(ChatEvent.MESSAGE, { newMsg });
+					await currentSocket.to(roomCode).emit(ChatEvent.MESSAGE, { newMsg });
 				}
 				socketIDs.forEach((socketID, i) => {
 					sockets.get(socketID).leave(roomCode);
@@ -119,7 +119,7 @@ const onLeaveRoom = async (req: any, res: any) => {
 const onDeleteRoom = async (req: any, res: any) => {
 	const { roomCode } = req.body;
 	const io = req.app.get('io');
-	io.to(roomCode).emit(ChatEvent.ROOM_DELETE, roomCode);
+	await io.to(roomCode).emit(ChatEvent.ROOM_DELETE, roomCode);
 	const socketIDs = deleteRoom(roomCode);
 	socketIDs.forEach((socketID) => {
 		io.sockets.sockets.get(socketID).leave(roomCode);
